@@ -1,4 +1,4 @@
-import type { Drama, FollowingItem, PlaybackHistoryItem, PlaybackOpen, PlaybackPlan, RankingItem, ViewerState } from '../types/api';
+import type { DownloadTask, Drama, FollowingItem, PlaybackHistoryItem, PlaybackOpen, PlaybackPlan, RankingItem, ViewerState } from '../types/api';
 
 const VIEWER_ID_KEY = 'juku.app.viewerId';
 
@@ -34,10 +34,10 @@ export class ApiClient {
   }
 
   async viewer(): Promise<ViewerState> {
-    const first = await this.get<ViewerState>('/api/ui/viewer');
-    if (!first.ready) return this.get<ViewerState>('/api/ui/viewer?confirm=1');
-    this.rememberViewer(first);
-    return first;
+    let result = await this.get<ViewerState>('/api/ui/viewer');
+    if (!result.ready) result = await this.get<ViewerState>('/api/ui/viewer?confirm=1');
+    this.rememberViewer(result);
+    return result;
   }
 
   async login(username: string, password: string): Promise<ViewerState> {
@@ -51,10 +51,15 @@ export class ApiClient {
   }
 
   async dramas(page = 1, limit = 30): Promise<{ data: Drama[]; total?: number; hasMore?: boolean }> {
-    const response = await this.get<{ data?: Drama[]; total?: number; hasMore?: boolean }>(
+    const response = await this.get<Drama[] | { data?: Drama[]; total?: number; hasMore?: boolean }>(
       `/api/ui/dramas?page=${page}&limit=${limit}&cached=true`,
     );
-    return { data: response.data ?? [], total: response.total, hasMore: response.hasMore };
+    return Array.isArray(response) ? { data: response, hasMore: response.length === limit } : { data: response.data ?? [], total: response.total, hasMore: response.hasMore };
+  }
+
+  async search(query: string, limit = 30): Promise<Drama[]> {
+    const response = await this.get<Drama[] | { data?: Drama[]; items?: Drama[] }>(`/api/ui/search?q=${encodeURIComponent(query)}&limit=${limit}`);
+    return Array.isArray(response) ? response : response.data ?? response.items ?? [];
   }
 
   async playbackHistory(): Promise<PlaybackHistoryItem[]> {
@@ -67,9 +72,19 @@ export class ApiClient {
     return Array.isArray(response) ? response : response.items ?? response.data ?? [];
   }
 
+  async updateFollowing(dramaId: string, values: { saved?: boolean; completed?: boolean; acknowledge?: boolean }): Promise<FollowingItem | null> {
+    const response = await this.post<{ entry?: FollowingItem }>('/api/ui/following', { dramaId, ...values });
+    return response.entry ?? null;
+  }
+
+  async tasks(): Promise<DownloadTask[]> {
+    const response = await this.get<DownloadTask[] | { data?: DownloadTask[]; items?: DownloadTask[] }>('/api/ui/tasks');
+    return Array.isArray(response) ? response : response.data ?? response.items ?? [];
+  }
+
   async rankings(boardId = 'hongguo-hot', page = 1, limit = 12): Promise<RankingItem[]> {
-    const response = await this.get<{ items?: RankingItem[]; data?: RankingItem[] }>(`/api/ui/rankings?board=${encodeURIComponent(boardId)}&page=${page}&limit=${limit}`);
-    return response.items ?? response.data ?? [];
+    const response = await this.get<RankingItem[] | { items?: RankingItem[]; data?: RankingItem[] }>(`/api/ui/rankings?board=${encodeURIComponent(boardId)}&page=${page}&limit=${limit}`);
+    return Array.isArray(response) ? response : response.items ?? response.data ?? [];
   }
 
   async playbackOpen(dramaId: string): Promise<PlaybackOpen> {
@@ -94,8 +109,16 @@ export class ApiClient {
     });
   }
 
+  async playbackHlsOpen(session: string, episode: number, start = 0): Promise<PlaybackPlan> {
+    return this.post<PlaybackPlan>('/api/ui/playback/hls/open', { session, episode, start, quality: 0, version: 0 });
+  }
+
   async playbackControl(session: string, action: string, progress?: Record<string, unknown>): Promise<void> {
     await this.post('/api/ui/playback/control', { session, action, progress });
+  }
+
+  async playbackProgress(session: string, progress: { run: number; sequence: number; episode: number; position: number; duration: number; completed: boolean }): Promise<void> {
+    await this.post('/api/ui/playback/progress', { session, progress });
   }
 
   private rememberViewer(viewer: ViewerState): void {

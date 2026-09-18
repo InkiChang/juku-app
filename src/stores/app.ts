@@ -71,6 +71,7 @@ export const appStore = {
   },
   async loadHome(): Promise<void> {
     if (!client) return;
+    if (!state.dramas.length) await this.loadMore();
     const [history, following, rankings] = await Promise.allSettled([
       client.playbackHistory(),
       client.following(),
@@ -79,6 +80,17 @@ export const appStore = {
     state.history = history.status === 'fulfilled' ? history.value : [];
     state.following = following.status === 'fulfilled' ? following.value : [];
     state.rankings = rankings.status === 'fulfilled' ? rankings.value : [];
+  },
+  findDrama(id?: string): Drama | undefined {
+    if (!id) return undefined;
+    return state.dramas.find(drama => drama.id === id || drama.sourceId === id);
+  },
+  async searchLibrary(query: string): Promise<Drama[]> {
+    const results = await client.search(query);
+    const known = new Map(state.dramas.map(drama => [drama.id, drama]));
+    for (const drama of results) known.set(drama.id, drama);
+    state.dramas = [...known.values()];
+    return results;
   },
   async loadMore(): Promise<void> {
     if (state.loading || !state.hasMore) return;

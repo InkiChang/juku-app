@@ -36,9 +36,16 @@ export interface ViewerState {
 
 export interface PlaybackOpen {
   session: string;
+  dramaId?: string;
+  source?: string;
+  title?: string;
+  releaseStatus?: string;
+  mode?: string;
+  resumePaused?: boolean;
+  resumeMessage?: string;
   initialIndex: number;
   initialPosition: number;
-  episodes: Array<{ index: number; title?: string }>;
+  episodes: Array<{ index: number; episode?: string; number?: number; title?: string; chapterId?: string; vip?: boolean }>;
 }
 
 export interface PlaybackPlan {
@@ -51,12 +58,22 @@ export interface PlaybackPlan {
   reason?: string;
   directURL?: string;
   duration?: number;
+  source?: string;
+  qualities?: Array<{ value: number; label?: string }>;
+  index?: string;
 }
 
 export interface PlaybackHistoryItem {
   drama?: Drama;
   dramaId?: string;
   episode?: number | string;
+  title?: string;
+  source?: string;
+  index?: number;
+  total?: number;
+  completed?: boolean;
+  mode?: string;
+  watchedAt?: string;
   episodeIndex?: number;
   position?: number;
   duration?: number;
@@ -69,7 +86,16 @@ export interface FollowingItem {
   drama?: Drama;
   dramaId?: string;
   status?: string;
+  title?: string;
+  source?: string;
+  category?: string;
+  totalEpisode?: number;
+  newEpisodes?: number;
+  saved?: boolean;
+  completed?: boolean;
+  addedAt?: string;
   watchedEpisode?: number | string;
+  index?: number;
   latestEpisode?: number | string;
   updatedAt?: string;
   [key: string]: unknown;
@@ -79,5 +105,25 @@ export interface RankingItem {
   rank?: number;
   drama?: Drama;
   metric?: string;
+  [key: string]: unknown;
+}
+
+export interface DownloadTask {
+  id?: string;
+  dramaId?: string;
+  dramaTitle?: string;
+  title?: string;
+  index?: number;
+  total?: number;
+  status?: string;
+  phase?: string;
+  progress?: number;
+  downloadedBytes?: number;
+  totalBytes?: number;
+  speedBytesPerSecond?: number;
+  error?: string;
+  playable?: boolean;
+  path?: string;
+  updatedAt?: string;
   [key: string]: unknown;
 }

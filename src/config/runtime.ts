@@ -8,7 +8,7 @@ export async function getDefaultApiBaseUrl(): Promise<string> {
   } catch {
     // Static hosting may not provide runtime config; fall back to Vite env.
   }
-  return import.meta.env.VITE_API_BASE_URL?.trim() || 'http://127.0.0.1:8998';
+  return import.meta.env.VITE_API_BASE_URL?.trim() || (import.meta.env.DEV ? '' : 'https://juku.inkicheng.top:10086');
 }
 
 export function savedApiBaseUrl(): string {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { appStore } from '../stores/app';
 import type { Drama } from '../types/api';
 
@@ -11,6 +11,21 @@ const cover = computed(() => {
   return appStore.api().resolve(source);
 });
 const episodes = computed(() => Math.min(Number(props.drama.totalEpisode || props.drama.episodeCount || 20), 60));
+const following = ref(false);
+const followSaving = ref(false);
+const followMessage = ref('');
+async function toggleFollowing() {
+  followSaving.value = true;
+  followMessage.value = '';
+  try {
+    await appStore.api().updateFollowing(props.drama.id, { saved: !following.value, completed: false });
+    following.value = !following.value;
+    followMessage.value = following.value ? '已加入追剧' : '已取消追剧';
+    await appStore.loadHome();
+  } catch (cause) {
+    followMessage.value = cause instanceof Error ? cause.message : '追剧操作失败';
+  } finally { followSaving.value = false; }
+}
 function onImageError(event: Event) {
   const image = event.currentTarget as HTMLImageElement;
   image.onerror = null;
@@ -19,5 +34,5 @@ function onImageError(event: Event) {
 </script>
 
 <template>
-  <div class="sheet-backdrop" @click.self="emit('close')"><section class="sheet detail-sheet"><div class="sheet-handle"></div><div class="sheet-title"><h2>剧集详情</h2><button class="close-button" type="button" aria-label="关闭" @click="emit('close')">×</button></div><div class="detail-hero"><img :src="cover" :alt="title" @error="onImageError"><div><h3>{{ title }}</h3><p>{{ drama.source || '短剧' }} · {{ drama.totalEpisode || drama.episodeCount || '未知' }} 集 · {{ drama.releaseStatus || '连载中' }}</p><p>{{ drama.desc || drama.intro || '暂无剧情简介。' }}</p><div class="chips"><span v-for="tag in (drama.tags || [drama.categoryName || drama.category || '热门'])" :key="tag" class="chip">{{ tag }}</span></div></div></div><div class="section-head detail-episodes-head"><h3>选集</h3><span>从第 1 集开始</span></div><div class="episodes"><button v-for="episode in episodes" :key="episode" type="button" :class="{ active: episode === 1 }" @click="emit('play', drama)">{{ episode }}</button></div><div class="sheet-actions"><button class="secondary-button" type="button" @click="emit('close')">♡ 追剧</button><button class="primary-button" type="button" @click="emit('play', drama)">▶ 继续播放</button></div></section></div>
+  <div class="sheet-backdrop" @click.self="emit('close')"><section class="sheet detail-sheet"><div class="sheet-handle"></div><div class="sheet-title"><h2>剧集详情</h2><button class="close-button" type="button" aria-label="关闭" @click="emit('close')">×</button></div><div class="detail-hero"><img :src="cover" :alt="title" @error="onImageError"><div><h3>{{ title }}</h3><p>{{ drama.source || '短剧' }} · {{ drama.totalEpisode || drama.episodeCount || '未知' }} 集 · {{ drama.releaseStatus || '连载中' }}</p><p>{{ drama.desc || drama.intro || '暂无剧情简介。' }}</p><div class="chips"><span v-for="tag in (drama.tags || [drama.categoryName || drama.category || '热门'])" :key="tag" class="chip">{{ tag }}</span></div></div></div><div class="section-head detail-episodes-head"><h3>选集</h3><span>从第 1 集开始</span></div><div class="episodes"><button v-for="episode in episodes" :key="episode" type="button" :class="{ active: episode === 1 }" @click="emit('play', drama)">{{ episode }}</button></div><p v-if="followMessage" class="muted">{{ followMessage }}</p><div class="sheet-actions"><button class="secondary-button" type="button" :disabled="followSaving" @click="toggleFollowing">{{ following ? '✓ 已追剧' : '♡ 追剧' }}</button><button class="primary-button" type="button" @click="emit('play', drama)">▶ 继续播放</button></div></section></div>
 </template>
