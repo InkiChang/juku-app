@@ -1,7 +1,7 @@
 import { computed, reactive } from 'vue';
 import { ApiClient, ApiError } from '../api/client';
 import { getDefaultApiBaseUrl, savedApiBaseUrl, saveApiBaseUrl } from '../config/runtime';
-import type { Drama, ViewerState } from '../types/api';
+import type { Drama, FollowingItem, PlaybackHistoryItem, RankingItem, ViewerState } from '../types/api';
 
 const state = reactive({
   ready: false,
@@ -12,6 +12,10 @@ const state = reactive({
   dramas: [] as Drama[],
   page: 0,
   hasMore: true,
+  history: [] as PlaybackHistoryItem[],
+  following: [] as FollowingItem[],
+  rankings: [] as RankingItem[],
+  theme: (localStorage.getItem('juku.app.theme') || 'dark') as 'dark' | 'light',
 });
 
 let client: ApiClient;
@@ -19,10 +23,16 @@ let client: ApiClient;
 export const appStore = {
   state,
   isLoggedIn: computed(() => Boolean(state.viewer?.account)),
+  theme: computed(() => state.theme),
   async init(): Promise<void> {
     state.apiBaseUrl = savedApiBaseUrl() || (await getDefaultApiBaseUrl());
     client = new ApiClient(state.apiBaseUrl);
-    await this.refreshViewer();
+    try {
+      await this.refreshViewer();
+    } catch (error) {
+      state.viewer = { ready: false };
+      state.error = error instanceof ApiError ? error.message : '暂未连接账号，会以访客模式继续';
+    }
     state.ready = true;
   },
   api(): ApiClient {
@@ -51,6 +61,24 @@ export const appStore = {
   async logout(): Promise<void> {
     await client.logout();
     await this.refreshViewer();
+  },
+  setTheme(theme: 'dark' | 'light'): void {
+    state.theme = theme;
+    localStorage.setItem('juku.app.theme', theme);
+  },
+  toggleTheme(): void {
+    this.setTheme(state.theme === 'dark' ? 'light' : 'dark');
+  },
+  async loadHome(): Promise<void> {
+    if (!client) return;
+    const [history, following, rankings] = await Promise.allSettled([
+      client.playbackHistory(),
+      client.following(),
+      client.rankings(),
+    ]);
+    state.history = history.status === 'fulfilled' ? history.value : [];
+    state.following = following.status === 'fulfilled' ? following.value : [];
+    state.rankings = rankings.status === 'fulfilled' ? rankings.value : [];
   },
   async loadMore(): Promise<void> {
     if (state.loading || !state.hasMore) return;

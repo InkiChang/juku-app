@@ -1,4 +1,4 @@
-import type { Drama, PlaybackOpen, PlaybackPlan, ViewerState } from '../types/api';
+import type { Drama, FollowingItem, PlaybackHistoryItem, PlaybackOpen, PlaybackPlan, RankingItem, ViewerState } from '../types/api';
 
 const VIEWER_ID_KEY = 'juku.app.viewerId';
 
@@ -55,6 +55,21 @@ export class ApiClient {
       `/api/ui/dramas?page=${page}&limit=${limit}&cached=true`,
     );
     return { data: response.data ?? [], total: response.total, hasMore: response.hasMore };
+  }
+
+  async playbackHistory(): Promise<PlaybackHistoryItem[]> {
+    const response = await this.get<PlaybackHistoryItem[] | { items?: PlaybackHistoryItem[]; data?: PlaybackHistoryItem[] }>('/api/ui/playback/history');
+    return Array.isArray(response) ? response : response.items ?? response.data ?? [];
+  }
+
+  async following(): Promise<FollowingItem[]> {
+    const response = await this.get<FollowingItem[] | { items?: FollowingItem[]; data?: FollowingItem[] }>('/api/ui/following');
+    return Array.isArray(response) ? response : response.items ?? response.data ?? [];
+  }
+
+  async rankings(boardId = 'hongguo-hot', page = 1, limit = 12): Promise<RankingItem[]> {
+    const response = await this.get<{ items?: RankingItem[]; data?: RankingItem[] }>(`/api/ui/rankings?board=${encodeURIComponent(boardId)}&page=${page}&limit=${limit}`);
+    return response.items ?? response.data ?? [];
   }
 
   async playbackOpen(dramaId: string): Promise<PlaybackOpen> {

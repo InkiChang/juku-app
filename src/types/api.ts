@@ -17,6 +17,10 @@ export interface Drama {
   releaseStatus?: string;
   vip?: boolean | string | null;
   episodes?: unknown[];
+  episodeCount?: number | string;
+  heat?: string | number;
+  views?: string | number;
+  tags?: string[];
 }
 
 export interface ViewerState {
@@ -47,4 +51,33 @@ export interface PlaybackPlan {
   reason?: string;
   directURL?: string;
   duration?: number;
+}
+
+export interface PlaybackHistoryItem {
+  drama?: Drama;
+  dramaId?: string;
+  episode?: number | string;
+  episodeIndex?: number;
+  position?: number;
+  duration?: number;
+  progress?: number;
+  updatedAt?: string;
+  [key: string]: unknown;
+}
+
+export interface FollowingItem {
+  drama?: Drama;
+  dramaId?: string;
+  status?: string;
+  watchedEpisode?: number | string;
+  latestEpisode?: number | string;
+  updatedAt?: string;
+  [key: string]: unknown;
+}
+
+export interface RankingItem {
+  rank?: number;
+  drama?: Drama;
+  metric?: string;
+  [key: string]: unknown;
 }
