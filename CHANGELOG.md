@@ -1,0 +1,8 @@
+# Changelog
+
+## 0.0.1 - 2026-09-18
+
+- 创建独立 Vue + TypeScript + Vite + Capacitor App 仓库。
+- 增加可切换的后端地址配置，默认支持本地开发服务。
+- 增加 viewer 身份初始化、账号登录和剧库分页 API 客户端。
+- 增加响应式 App shell、剧库、登录和服务器设置页面。
