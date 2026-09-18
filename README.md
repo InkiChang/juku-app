@@ -47,4 +47,4 @@ GitHub Actions 会在后续阶段补充 Web 构建和 Android 产物发布流程
 
 ## UI 审查原型
 
-启动 `pnpm dev` 后打开 `http://localhost:5173/design-review.html`。原型覆盖首页、剧库、详情、播放器、追剧、下载、我的、服务器设置和账号弹层；设计依据记录在 `docs/ui-audit.md`。确认视觉方向后，再将原型拆分为正式 Vue 页面并接入现有 API。
+启动 `pnpm dev` 后打开 `http://localhost:5173/design-review.html`。原型覆盖首页、剧库、详情、播放器、追剧、下载、我的、服务器设置和账号弹层；设计依据和“今天看什么”的接口组合逻辑记录在 `docs/ui-audit.md`。确认视觉方向后，再将原型拆分为正式 Vue 页面并接入现有 API。
