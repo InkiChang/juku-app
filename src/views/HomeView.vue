@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { appStore } from '../stores/app';
+import AppIcon from '../components/AppIcon.vue';
 import type { Drama } from '../types/api';
 
 const emit = defineEmits<{ openDrama: [drama: Drama]; playDrama: [drama: Drama] }>();
@@ -70,7 +71,7 @@ function onImageError(event: Event) {
 
 <template>
   <section class="screen-view home-view">
-    <div class="heading-row"><div><span class="eyebrow">GOOD EVENING</span><h1>今天看点什么</h1><p>优先接着看，再从更新和热榜里发现新剧。</p></div><button class="icon-button" type="button" aria-label="刷新推荐" @click="appStore.loadHome()">↻</button></div>
+    <div class="heading-row"><div><span class="eyebrow">GOOD EVENING</span><h1>今天看点什么</h1><p>优先接着看，再从更新和热榜里发现新剧。</p></div><button class="icon-button" type="button" aria-label="刷新推荐" @click="appStore.loadHome()"><AppIcon name="refresh" label="刷新推荐" /></button></div>
     <section class="hero-carousel" aria-label="今日推荐轮播" @touchstart.passive="handleTouchStart" @touchend.passive="handleTouchEnd">
       <div class="hero-track" :style="{ transform: `translateX(-${activeIndex * 100}%)` }">
         <article v-for="card in cards" :key="card.kind" class="hero-slide">

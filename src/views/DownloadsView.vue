@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { appStore } from '../stores/app';
+import AppIcon from '../components/AppIcon.vue';
 import type { DownloadTask } from '../types/api';
 
 const tasks = ref<DownloadTask[]>([]);
@@ -36,7 +37,7 @@ onMounted(refresh);
 
 <template>
   <section class="screen-view">
-    <div class="heading-row"><div><span class="eyebrow">OFFLINE TASKS</span><h1>下载</h1><p>任务在手机端执行，完成后可离线观看。</p></div><button class="icon-button" type="button" aria-label="刷新下载任务" @click="refresh">↻</button></div>
+    <div class="heading-row"><div><span class="eyebrow">OFFLINE TASKS</span><h1>下载</h1><p>任务在手机端执行，完成后可离线观看。</p></div><button class="icon-button" type="button" aria-label="刷新下载任务" @click="refresh"><AppIcon name="refresh" label="刷新下载任务" /></button></div>
     <p v-if="error" class="error-text">{{ error }}</p>
     <div class="download-summary"><div><strong>{{ summary.running }}</strong><span>进行中</span></div><div><strong>{{ summary.completedEpisodes }}</strong><span>已完成分集</span></div><div><strong>{{ bytesLabel }}</strong><span>累计写入</span></div></div>
     <div class="filter-row"><button v-for="tab in tabs" :key="tab" :class="{ active: active === tab }" type="button" @click="active = tab">{{ tab }}</button></div>

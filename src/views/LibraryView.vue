@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { appStore } from '../stores/app';
+import AppIcon from '../components/AppIcon.vue';
 import type { Drama } from '../types/api';
 
 const state = appStore.state;
@@ -39,7 +40,7 @@ onMounted(() => appStore.loadMore());
 
 <template>
   <section class="library-view">
-    <div class="heading-row"><div><span class="eyebrow">CATALOG</span><h1>剧库</h1><p>按站源、分类和更新顺序浏览。</p></div><button class="icon-button" type="button" aria-label="刷新剧库" @click="appStore.loadMore()">↻</button></div>
+    <div class="heading-row"><div><span class="eyebrow">CATALOG</span><h1>剧库</h1><p>按站源、分类和更新顺序浏览。</p></div><button class="icon-button" type="button" aria-label="刷新剧库" @click="appStore.loadMore()"><AppIcon name="refresh" label="刷新剧库" /></button></div>
     <p v-if="state.error" class="error-text">{{ state.error }}</p>
     <div class="toolbar"><label class="search-box"><span>⌕</span><input v-model="search" type="search" placeholder="搜索剧名、简介或标签" @keydown.enter.prevent="executeSearch" /></label><button class="filter-button" type="button" aria-label="联网搜索" :disabled="searching" @click="executeSearch">{{ searching ? '…' : '↗' }}</button></div>
     <div class="filter-row"><button class="active" type="button">全部站源</button><button type="button">全部分类</button><button :class="{ active: latestOnly }" type="button" @click="latestOnly = !latestOnly">最新上线</button><button :class="{ active: hideVip }" type="button" @click="hideVip = !hideVip">隐藏 VIP</button></div>
