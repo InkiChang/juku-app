@@ -96,10 +96,10 @@ jobs:
           BUILD_TYPE: ${{ github.event_name == 'push' && 'release' || inputs.build_type }}
         run: |
           if [ "$BUILD_TYPE" = "release" ]; then
-            ./gradlew --no-daemon :app:assembleRelease
+            ./android/gradlew --no-daemon -p android :app:assembleRelease
             APK_PATH=android/app/build/outputs/apk/release/app-release-unsigned.apk
           else
-            ./gradlew --no-daemon :app:assembleDebug
+            ./android/gradlew --no-daemon -p android :app:assembleDebug
             APK_PATH=android/app/build/outputs/apk/debug/app-debug.apk
           fi
           mkdir -p release
