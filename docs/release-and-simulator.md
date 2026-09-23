@@ -44,16 +44,17 @@ git diff --check
 - `version.json` 的 `version` 和递增的 `code`
 - `CHANGELOG.md`
 
-发布首发版本：
+本仓库的 `.github/workflows/android-apk.yml` 提供两种构建方式：
+
+- 在 GitHub 的 **Actions → Android APK → Run workflow** 中选择 `debug`，生成测试 APK 并下载 Artifact。
+- 新版本的三个版本字段更新并检查通过后，推送与版本号一致的 tag（例如 `v0.0.2`），Actions 会构建 Release APK 并创建 GitHub Release。
 
 ```bash
-pnpm run typecheck
-pnpm run build
-git add .
-git commit -m "release: v0.0.1"
-git tag v0.0.1
-git push origin main --tags
+git tag v0.0.2
+git push origin v0.0.2
 ```
+
+Tag 发布只推送该 tag，不要使用 `git push --tags`，以免意外发布其他本地 tag。Debug APK 可用于测试；当前 Release APK 未签名，不适用于 Play Store 或作为签名升级包分发。正式签名发布需由仓库维护者配置 GitHub Actions Secrets 和签名步骤。
 
 不要提交 `dist/`、`node_modules/`、`android/local.properties`、iOS Pods 或本机签名文件。
 
