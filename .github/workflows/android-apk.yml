@@ -1,0 +1,121 @@
+name: Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: APK build type
+        type: choice
+        options:
+          - debug
+          - release
+        default: debug
+        required: true
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read and validate version
+        id: app-version
+        shell: bash
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          APP_VERSION=$(node -p "require('./version.json').version")
+          VERSION_CODE=$(node -p "require('./version.json').code")
+          if [ "$PACKAGE_VERSION" != "$APP_VERSION" ]; then
+            echo "package.json ($PACKAGE_VERSION) and version.json ($APP_VERSION) differ" >&2
+            exit 1
+          fi
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v$APP_VERSION" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match app version v$APP_VERSION" >&2
+            exit 1
+          fi
+          echo "version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check and build web assets
+        run: |
+          pnpm run audit:repo
+          pnpm typecheck
+          pnpm build
+
+      - name: Sync Capacitor Android project
+        run: pnpm exec cap sync android
+
+      - name: Configure Android version
+        shell: bash
+        run: |
+          VERSION='${{ steps.app-version.outputs.version }}'
+          CODE='${{ steps.app-version.outputs.code }}'
+          sed -i "s/versionCode [0-9]*/versionCode $CODE/" android/app/build.gradle
+          sed -i "s/versionName \"[0-9.]*\"/versionName \"$VERSION\"/" android/app/build.gradle
+
+      - name: Build APK
+        shell: bash
+        env:
+          BUILD_TYPE: ${{ github.event_name == 'push' && 'release' || inputs.build_type }}
+        run: |
+          if [ "$BUILD_TYPE" = "release" ]; then
+            ./gradlew --no-daemon :app:assembleRelease
+            APK_PATH=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          else
+            ./gradlew --no-daemon :app:assembleDebug
+            APK_PATH=android/app/build/outputs/apk/debug/app-debug.apk
+          fi
+          mkdir -p release
+          cp "$APK_PATH" "release/juku-app-v${{ steps.app-version.outputs.version }}-${BUILD_TYPE}.apk"
+          shasum -a 256 "release/juku-app-v${{ steps.app-version.outputs.version }}-${BUILD_TYPE}.apk" > release/SHA256SUMS.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: juku-app-v${{ steps.app-version.outputs.version }}-${{ github.event_name == 'push' && 'release' || inputs.build_type }}
+          path: release/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Juku App $GITHUB_REF_NAME" \
+            --generate-notes
