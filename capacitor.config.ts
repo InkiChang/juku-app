@@ -7,6 +7,17 @@ const config: CapacitorConfig = {
   server: {
     allowNavigation: ['*'],
   },
+  plugins: {
+    CapacitorHttp: {
+      // Keep the global fetch/XHR patch disabled. HLS.js uses its own native
+      // loader in PlayerSheet so ordinary API/catalog requests keep their
+      // normal memory and cancellation behaviour.
+      enabled: false,
+    },
+    CapacitorCookies: {
+      enabled: true,
+    },
+  },
 };
 
 export default config;

@@ -11,6 +11,12 @@ importers:
       '@capacitor/core':
         specifier: ^7.4.3
         version: 7.6.9
+      '@capacitor/screen-orientation':
+        specifier: ^7.0.4
+        version: 7.0.4(@capacitor/core@7.6.9)
+      '@capacitor/status-bar':
+        specifier: ^7.0.6
+        version: 7.0.6(@capacitor/core@7.6.9)
       hls.js:
         specifier: ^1.6.13
         version: 1.7.3
@@ -76,6 +82,16 @@ packages:
     resolution: {integrity: sha512-LANP81TfwuJk1zq9EuF+J5AJK71rKDgXB5XD+VFJQHC7BxSH4Dsma6DSMyrjFT03jtqc/0JTMEfSMBE7go3ZjA==}
     peerDependencies:
       '@capacitor/core': ^7.6.0
+
+  '@capacitor/screen-orientation@7.0.4':
+    resolution: {integrity: sha512-xWeWnZsV6z1bXxlOnSi3ynrFMK/JICryAuLnIvGL069BHS05nvxwu15d0xMZiMZWkoucNEAN60vyIYGGqz5IWA==}
+    peerDependencies:
+      '@capacitor/core': '>=7.0.0'
+
+  '@capacitor/status-bar@7.0.6':
+    resolution: {integrity: sha512-7AVqj46b26QikImQzWfsJmzG8NUJZBGkrVSuoeTo+SX/YH3hXH0MqwwFgMqMGHfa/BICDgSvTjM9miVFlq0+RQ==}
+    peerDependencies:
+      '@capacitor/core': '>=7.0.0'
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ==}
@@ -964,6 +980,14 @@ snapshots:
       tslib: 2.8.1
 
   '@capacitor/ios@7.6.9(@capacitor/core@7.6.9)':
+    dependencies:
+      '@capacitor/core': 7.6.9
+
+  '@capacitor/screen-orientation@7.0.4(@capacitor/core@7.6.9)':
+    dependencies:
+      '@capacitor/core': 7.6.9
+
+  '@capacitor/status-bar@7.0.6(@capacitor/core@7.6.9)':
     dependencies:
       '@capacitor/core': 7.6.9
 
